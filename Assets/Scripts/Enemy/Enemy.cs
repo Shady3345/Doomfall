@@ -5,6 +5,8 @@ public class Enemy : MonoBehaviour
     public EnemyManager enemyManager;
     private float enemyHealth = 2f;
 
+    public GameObject gunHitEfect;
+
 
     void Start()
     {
@@ -22,6 +24,7 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        Instantiate(original: gunHitEfect, position: transform.position, rotation: Quaternion.identity);
         enemyHealth -= damage;
         Debug.Log("Enemy took damage! Remaining health: " + enemyHealth);
     }

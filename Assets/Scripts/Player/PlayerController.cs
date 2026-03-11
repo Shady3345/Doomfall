@@ -24,15 +24,19 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Force camera to start looking straight forward
+        xRotation = 0f;
+        playerCamera.localRotation = Quaternion.Euler(0f, 0f, 0f);
     }
 
     void Update()
     {
         Move();
         MouseLook();
+
     }
 
     void Move()
