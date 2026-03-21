@@ -14,7 +14,7 @@ public class PlayerHealth : MonoBehaviour
     private void Start()
     {
         health = maxHealth;
-        armor = maxArmor;
+        
     }
 
     private void Update()
@@ -68,6 +68,36 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    public void GiveHealth(int amount, GameObject pickup)
+    {
+        if (health < maxHealth)
+        {
+            health += amount;
+            Destroy(pickup);
+        }
+       
+        if(health > maxHealth)
+        {
+            health = maxHealth;
+            Debug.Log("Health gained: " + amount + " | Health: " + health);
+        }
+       
+    }
+
+    public void GiveArmor(int amount, GameObject pickup)
+    {
+        if (armor < maxArmor)
+        {
+            armor += amount;
+            Destroy(pickup);
+        }
+
+        if (armor > maxArmor)
+        {
+            armor = maxArmor;
+            Debug.Log("Armor gained: " + amount + " | Armor: " + armor);
+        }
+    }
     public void Heal(int amount)
     {
         health += amount;
