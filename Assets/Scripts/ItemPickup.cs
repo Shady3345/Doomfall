@@ -29,24 +29,15 @@ public class ItemPickup : MonoBehaviour
                 // Logic for health pickup
                 Debug.Log("Player picked up health!");
             }
-
+            
             if (isArmor)
             {
-                Debug.Log("ARMOR PICKUP TRIGGERED");
-
-                PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-
-                if (playerHealth != null)
-                {
-                    playerHealth.GiveArmor(amount, gameObject);
-                    Debug.Log("Armor GIVEN");
-                }
-                else
-                {
-                    Debug.LogError("PlayerHealth NOT FOUND!");
-                }
+                other.GetComponent<PlayerHealth>().GiveArmor(amount, this.gameObject);
+                // Logic for ammo pickup
+                Debug.Log("Player picked up ammo!");
+                
             }
-
+            
             if (isAmmo)
             {
                 other.GetComponentInChildren<Gun>().GiveAmmo(amount, this.gameObject);
