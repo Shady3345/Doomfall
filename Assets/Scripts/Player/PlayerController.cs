@@ -18,16 +18,16 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocity;
     private Vector3 currentMoveVelocity;
-
     private float xRotation = 0f;
+    private bool canMove = true;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // Force camera to start looking straight forward
         xRotation = 0f;
         playerCamera.localRotation = Quaternion.Euler(0f, 0f, 0f);
     }
@@ -36,29 +36,24 @@ public class PlayerController : MonoBehaviour
     {
         Move();
         MouseLook();
-
     }
 
     void Move()
     {
+        if (!canMove) return;
+
         float x = Keyboard.current.aKey.isPressed ? -1 :
                   Keyboard.current.dKey.isPressed ? 1 : 0;
-
         float z = Keyboard.current.sKey.isPressed ? -1 :
                   Keyboard.current.wKey.isPressed ? 1 : 0;
 
         Vector3 input = (transform.right * x + transform.forward * z).normalized;
-
         Vector3 targetVelocity = input * moveSpeed;
 
         if (input.magnitude > 0)
-        {
             currentMoveVelocity = Vector3.Lerp(currentMoveVelocity, targetVelocity, acceleration * Time.deltaTime);
-        }
         else
-        {
             currentMoveVelocity = Vector3.Lerp(currentMoveVelocity, Vector3.zero, deceleration * Time.deltaTime);
-        }
 
         controller.Move(currentMoveVelocity * Time.deltaTime);
 
@@ -66,19 +61,17 @@ public class PlayerController : MonoBehaviour
             velocity.y = -2f;
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame && controller.isGrounded)
-        {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
 
         velocity.y += gravity * Time.deltaTime;
-
         controller.Move(velocity * Time.deltaTime);
     }
 
     void MouseLook()
     {
-        Vector2 mouse = Mouse.current.delta.ReadValue();
+        if (!canMove) return;
 
+        Vector2 mouse = Mouse.current.delta.ReadValue();
         float mouseX = mouse.x * mouseSensitivity * Time.deltaTime * 100f;
         float mouseY = mouse.y * mouseSensitivity * Time.deltaTime * 100f;
 
@@ -87,5 +80,12 @@ public class PlayerController : MonoBehaviour
 
         playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
+    }
+
+    public void SetCanMove(bool state)
+    {
+        canMove = state;
+        Cursor.lockState = state ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !state;
     }
 }

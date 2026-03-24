@@ -25,11 +25,14 @@ public class Gun : MonoBehaviour
     public LayerMask enemyLayerMask;
     public EnemyManager enemyManager;
     public Collider[] enemyColliders;
-    private void Start()
+    
+    void Start()
     {
         gunTrigger = GetComponent<BoxCollider>();
         gunTrigger.size = new Vector3(range, verticalRange, range);
         gunTrigger.center = new Vector3(0, verticalRange / 2, range / 2);
+
+        CanvasManager.Instance.UpdateAmmo(ammo);
     }
 
     void Update()
@@ -78,6 +81,7 @@ public class Gun : MonoBehaviour
         nextTimeToFire = Time.time + 1f / fireRate;
 
         ammo--;
+        CanvasManager.Instance.UpdateAmmo(ammo);
     }
 
     public void GiveAmmo(int amount, GameObject pickup)
@@ -93,7 +97,7 @@ public class Gun : MonoBehaviour
             ammo = maxAmmo;
         }
 
-
+        CanvasManager.Instance.UpdateAmmo(ammo);
     }
 
     private void OnTriggerEnter(Collider other)
