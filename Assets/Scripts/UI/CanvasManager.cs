@@ -58,15 +58,29 @@ public class CanvasManager : MonoBehaviour
     }
 
     // --- KEYS ---
-    public void UpdateKeys(bool hasRed, bool hasGreen, bool hasBlue)
+    public void UpdateKeys(string keyColor)
     {
-        if (redKey != null)
-            redKey.SetActive(hasRed);
+        if (keyColor == "red")
+        {
+            redKey.SetActive(true);
+        }
 
-        if (greenKey != null)
-            greenKey.SetActive(hasGreen);
+        if (keyColor == "blue")
+        {
+            blueKey.SetActive(true);
+        }
 
-        if (blueKey != null)
-            blueKey.SetActive(hasBlue);
+        if (keyColor == "green")
+        {
+            greenKey.SetActive(true);
+        }
+
+    }
+
+    public void ClearKeys()
+    {   
+        redKey.SetActive(false);
+        blueKey.SetActive(false);
+        greenKey.SetActive(false);
     }
 }

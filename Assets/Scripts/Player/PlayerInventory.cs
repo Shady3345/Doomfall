@@ -7,7 +7,7 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-       // CanvasManager.Instance.ClearKey();
+        CanvasManager.Instance.ClearKeys();
     }
 }
 

@@ -2,15 +2,21 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public EnemyManager enemyManager;
+
+    private Animator spriteAnim;
+    private AngleToPlayer angleToPlayer;
+    private EnemyManager enemyManager;
     private float enemyHealth = 2f;
 
     public GameObject gunHitEfect;
 
 
-    void Start()
+    private void Start()
     {
+        spriteAnim = GetComponentInChildren<Animator>();
+        angleToPlayer = GetComponent<AngleToPlayer>();
 
+        enemyManager = FindAnyObjectByType<EnemyManager>();
     }
 
     void Update()
