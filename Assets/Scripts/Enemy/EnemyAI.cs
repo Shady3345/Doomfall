@@ -10,7 +10,7 @@ public class EnemyAI : MonoBehaviour
     private NavMeshAgent agent;
 
     [Header("Settings")]
-    public float stoppingDistance = 2f;
+    public float stoppingDistance = 0.5f;
 
     private void Start()
     {
@@ -47,5 +47,6 @@ public class EnemyAI : MonoBehaviour
         {
             agent.ResetPath();
         }
+        Debug.Log($"isAggro: {enemyAwareness.isAggro} | hasPath: {agent.hasPath} | pathStatus: {agent.pathStatus} | remainingDist: {agent.remainingDistance}");
     }
 }

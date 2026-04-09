@@ -2,12 +2,12 @@
 
 public class EnemyAwareness : MonoBehaviour
 {
-
-    public float awarenessRadius = 3f;
+    public float awarenessRadius = 5f;   // detection range
+    public float chaseRadius = 10f;      // how far it keeps chasing
     public Material aggroMat;
     public bool isAggro;
     private Transform playerTransform;
-     
+
     private void Start()
     {
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
@@ -15,20 +15,16 @@ public class EnemyAwareness : MonoBehaviour
 
     private void FixedUpdate()
     {
-        var distance = Vector3.Distance(transform.position, playerTransform.position);
+        float distance = Vector3.Distance(transform.position, playerTransform.position);
 
-        if(distance < awarenessRadius)
+        if (!isAggro && distance < awarenessRadius)
         {
-           isAggro = true;
+            isAggro = true;   // player entered detection range → aggro on
         }
-
+        else if (isAggro && distance > chaseRadius)
+        {
+            isAggro = false;  // player ran far enough away → give up
+        }
+        // between awarenessRadius and chaseRadius: keep current state
     }
-
-    private void Update()
-    {
-        if (isAggro)
-        {
-            GetComponent <MeshRenderer>().material = aggroMat;  
-        }
-    }  
 }
