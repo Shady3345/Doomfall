@@ -1,6 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
-using UnityEditorInternal;
 
 public class CanvasManager : MonoBehaviour
 {
@@ -9,26 +9,24 @@ public class CanvasManager : MonoBehaviour
     public TextMeshProUGUI armor;
     public TextMeshProUGUI ammo;
 
+    [Header("Weapon Sprite")]
+    public Image weaponImage;
+    public Sprite pistolSprite;
+    public Sprite machinePistolSprite;
+    public Sprite shotgunSprite;
+
     [Header("Keys")]
     public GameObject redKey;
     public GameObject greenKey;
     public GameObject blueKey;
 
-
     private static CanvasManager _instance;
-    public static CanvasManager Instance
-
-    {
-        get { return _instance; }   
-
-    }
+    public static CanvasManager Instance => _instance;
 
     private void Awake()
     {
         if (_instance != null && _instance != this)
-        {
             Destroy(this.gameObject);
-        }
         else
         {
             _instance = this;
@@ -57,28 +55,30 @@ public class CanvasManager : MonoBehaviour
             ammo.text = ammoValue.ToString();
     }
 
+    // --- WEAPON SPRITE ---
+    public void UpdateWeaponSprite(Gun.WeaponType type)
+    {
+        if (weaponImage == null) return;
+
+        weaponImage.sprite = type switch
+        {
+            Gun.WeaponType.Pistol        => pistolSprite,
+            Gun.WeaponType.MachinePistol => machinePistolSprite,
+            Gun.WeaponType.Shotgun       => shotgunSprite,
+            _                            => null
+        };
+    }
+
     // --- KEYS ---
     public void UpdateKeys(string keyColor)
     {
-        if (keyColor == "red")
-        {
-            redKey.SetActive(true);
-        }
-
-        if (keyColor == "blue")
-        {
-            blueKey.SetActive(true);
-        }
-
-        if (keyColor == "green")
-        {
-            greenKey.SetActive(true);
-        }
-
+        if (keyColor == "red")   redKey.SetActive(true);
+        if (keyColor == "blue")  blueKey.SetActive(true);
+        if (keyColor == "green") greenKey.SetActive(true);
     }
 
     public void ClearKeys()
-    {   
+    {
         redKey.SetActive(false);
         blueKey.SetActive(false);
         greenKey.SetActive(false);
