@@ -5,11 +5,10 @@ using UnityEngine.InputSystem;
 public class Gun : MonoBehaviour
 {
 
-    [Header("Weapon Models")]
-    public GameObject pistolObject;
-    public GameObject machinePistolObject;
-    public GameObject shotgunObject;
-
+    [Header("Weapon Prefabs")]
+    public GameObject pistolPickupPrefab;
+    public GameObject machinePistolPickupPrefab;
+    public GameObject shotgunPickupPrefab;
     // ──────────────────────────────────────────
     //  REFERENCES
     // ──────────────────────────────────────────
@@ -18,6 +17,22 @@ public class Gun : MonoBehaviour
     public LayerMask enemyLayerMask;
     public EnemyManager enemyManager;
     public float gunShotRadius = 10f;
+
+    // ──────────────────────────────────────────
+    //  WEAPON MODELS (3D held sprites)
+    // ──────────────────────────────────────────
+    [Header("Weapon Models")]
+    public GameObject pistolObject;
+    public GameObject machinePistolObject;
+    public GameObject shotgunObject;
+
+    // ──────────────────────────────────────────
+    //  UI WEAPON ICONS (HUD)
+    // ──────────────────────────────────────────
+    [Header("UI Weapon Icons")]
+    public GameObject uiPistol;
+    public GameObject uiShotgun;
+    public GameObject uiMachinePistol;
 
     // ──────────────────────────────────────────
     //  WEAPON DEFINITION
@@ -46,7 +61,7 @@ public class Gun : MonoBehaviour
     // ──────────────────────────────────────────
     //  STATE
     // ──────────────────────────────────────────
-    private int currentWeaponIndex = 0;
+    public int currentWeaponIndex = 0;
     private float nextTimeToFire = 0f;
     private BoxCollider gunTrigger;
 
@@ -60,12 +75,10 @@ public class Gun : MonoBehaviour
         gunTrigger = GetComponent<BoxCollider>();
 
         foreach (var w in weapons) w.ammo = 0;
-        weapons[0].unlocked = true;
 
         RefreshTrigger();
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
         UpdateWeaponVisibility();
-
     }
 
     // ──────────────────────────────────────────
@@ -88,6 +101,31 @@ public class Gun : MonoBehaviour
         if (Keyboard.current.digit3Key.wasPressedThisFrame) TrySwitchTo(2);
     }
 
+    void DropCurrentWeapon()
+    {
+        if (!CurrentWeapon.unlocked) return;
+
+        GameObject prefab = null;
+
+        switch (CurrentWeapon.type)
+        {
+            case WeaponType.Pistol: prefab = pistolPickupPrefab; break;
+            case WeaponType.MachinePistol: prefab = machinePistolPickupPrefab; break;
+            case WeaponType.Shotgun: prefab = shotgunPickupPrefab; break;
+        }
+
+        if (prefab != null)
+        {
+            // Spawn the pickup slightly in front of the player
+            Vector3 dropPosition = playerCamera.position + playerCamera.forward * 1.5f;
+            Instantiate(prefab, dropPosition, Quaternion.identity);
+        }
+
+        // Reset the weapon
+        CurrentWeapon.unlocked = false;
+        CurrentWeapon.ammo = 0;
+    }
+
     void TrySwitchTo(int index)
     {
         if (index >= weapons.Count) return;
@@ -97,6 +135,7 @@ public class Gun : MonoBehaviour
         currentWeaponIndex = index;
         RefreshTrigger();
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
+        UpdateWeaponVisibility();
         Debug.Log("Switched to " + CurrentWeapon.type);
     }
 
@@ -199,6 +238,26 @@ public class Gun : MonoBehaviour
     }
 
     // ──────────────────────────────────────────
+    //  WEAPON VISIBILITY
+    // ──────────────────────────────────────────
+    void UpdateWeaponVisibility()
+    {
+        bool pistolActive = CurrentWeapon.type == WeaponType.Pistol && CurrentWeapon.unlocked;
+        bool machineActive = CurrentWeapon.type == WeaponType.MachinePistol && CurrentWeapon.unlocked;
+        bool shotgunActive = CurrentWeapon.type == WeaponType.Shotgun && CurrentWeapon.unlocked;
+
+        // 3D held weapon sprites
+        if (pistolObject) pistolObject.SetActive(pistolActive);
+        if (machinePistolObject) machinePistolObject.SetActive(machineActive);
+        if (shotgunObject) shotgunObject.SetActive(shotgunActive);
+
+        // HUD UI icons
+        if (uiPistol) uiPistol.SetActive(pistolActive);
+        if (uiShotgun) uiShotgun.SetActive(shotgunActive);
+        if (uiMachinePistol) uiMachinePistol.SetActive(machineActive);
+    }
+
+    // ──────────────────────────────────────────
     //  PUBLIC: UNLOCK WEAPON
     // ──────────────────────────────────────────
     public void UnlockWeapon(WeaponType type)
@@ -207,6 +266,9 @@ public class Gun : MonoBehaviour
         {
             if (w.type == type && !w.unlocked)
             {
+                // Drop current weapon first
+                DropCurrentWeapon();
+
                 w.unlocked = true;
                 w.ammo = w.maxAmmo;
                 Debug.Log(type + " unlocked!");
@@ -217,13 +279,6 @@ public class Gun : MonoBehaviour
                 UpdateWeaponVisibility();
             }
         }
-    }
-
-    void UpdateWeaponVisibility()
-    {
-        pistolObject.SetActive(CurrentWeapon.type == WeaponType.Pistol);
-        machinePistolObject.SetActive(CurrentWeapon.type == WeaponType.MachinePistol);
-        shotgunObject.SetActive(CurrentWeapon.type == WeaponType.Shotgun);
     }
 
     // ──────────────────────────────────────────
@@ -251,7 +306,6 @@ public class Gun : MonoBehaviour
         float r = CurrentWeapon.range;
         gunTrigger.size = new Vector3(r, r, r);
         gunTrigger.center = new Vector3(0, r / 2f, r / 2f);
-        UpdateWeaponVisibility();
     }
 
     private void OnTriggerEnter(Collider other)
