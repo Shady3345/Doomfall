@@ -5,6 +5,11 @@ using UnityEngine.InputSystem;
 public class Gun : MonoBehaviour
 {
 
+    [Header("Effects")]
+    public ParticleSystem pistolMuzzleFlash;
+    public ParticleSystem machinePistolMuzzleFlash;
+    public ParticleSystem shotgunMuzzleFlash;
+
     [Header("Weapon Prefabs")]
     public GameObject pistolPickupPrefab;
     public GameObject machinePistolPickupPrefab;
@@ -155,10 +160,20 @@ public class Gun : MonoBehaviour
     // ──────────────────────────────────────────
     //  FIRE
     // ──────────────────────────────────────────
+
     void Fire()
     {
+        // Sound
         AudioSource audio = GetComponent<AudioSource>();
         if (audio) { audio.Stop(); audio.Play(); }
+
+        // Muzzle flash
+        switch (CurrentWeapon.type)
+        {
+            case WeaponType.Pistol: if (pistolMuzzleFlash) pistolMuzzleFlash.Play(); break;
+            case WeaponType.MachinePistol: if (machinePistolMuzzleFlash) machinePistolMuzzleFlash.Play(); break;
+            case WeaponType.Shotgun: if (shotgunMuzzleFlash) shotgunMuzzleFlash.Play(); break;
+        }
 
         foreach (var col in Physics.OverlapSphere(transform.position, gunShotRadius, enemyLayerMask))
         {

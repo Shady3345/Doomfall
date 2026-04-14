@@ -1,43 +1,37 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform playerTransform;
-
     private EnemyAwareness enemyAwareness;
     private NavMeshAgent agent;
-
-    [Header("Settings")]
-    public float stoppingDistance = 0.5f;
 
     private void Start()
     {
         enemyAwareness = GetComponent<EnemyAwareness>();
         agent = GetComponent<NavMeshAgent>();
-
-        // Falls du vergessen hast den Player zu setzen
-        if (playerTransform == null)
-        {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-
-            if (player != null)
-            {
-                playerTransform = player.transform;
-            }
-            else
-            {
-                Debug.LogError("Player not found! Set tag 'Player' or assign manually.");
-            }
-        }
-
-        agent.stoppingDistance = stoppingDistance;
+        agent.stoppingDistance = 0f;
     }
 
     private void Update()
     {
-        if (playerTransform == null || enemyAwareness == null) return;
+        if (playerTransform == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+                playerTransform = player.transform;
+            else
+                return;
+        }
+
+        if (enemyAwareness == null) return;
+
+        // Guard: dont call SetDestination if agent isnt on NavMesh yet
+        if (!agent.isOnNavMesh) return;
+
+        agent.isStopped = !enemyAwareness.isAggro;
 
         if (enemyAwareness.isAggro)
         {
@@ -47,6 +41,5 @@ public class EnemyAI : MonoBehaviour
         {
             agent.ResetPath();
         }
-        Debug.Log($"isAggro: {enemyAwareness.isAggro} | hasPath: {agent.hasPath} | pathStatus: {agent.pathStatus} | remainingDist: {agent.remainingDistance}");
     }
 }

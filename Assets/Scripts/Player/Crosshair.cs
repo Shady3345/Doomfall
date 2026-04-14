@@ -43,9 +43,15 @@ public class Crosshair : MonoBehaviour
 
         SetCrosshairVisible(true);
 
+        // Safety check before accessing current weapon
+        if (gun.weapons == null || gun.weapons.Count == 0) return;
+        if (gun.currentWeaponIndex < 0 || gun.currentWeaponIndex >= gun.weapons.Count) return;
+
+        Gun.Weapon current = gun.weapons[gun.currentWeaponIndex];
+        if (current == null) return;
+
         // Raycast to check if enemy is in range
         bool enemyInRange = false;
-        Gun.Weapon current = gun.weapons[gun.currentWeaponIndex > -1 ? gun.currentWeaponIndex : 0];
 
         if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, current.range))
         {
