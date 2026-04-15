@@ -4,6 +4,10 @@ using UnityEngine.InputSystem;
 
 public class Gun : MonoBehaviour
 {
+    [Header("Sounds")]
+    public AudioClip pistolSound;
+    public AudioClip machinePistolSound;
+    public AudioClip shotgunSound;
 
     [Header("Effects")]
     public ParticleSystem pistolMuzzleFlash;
@@ -69,6 +73,7 @@ public class Gun : MonoBehaviour
     public int currentWeaponIndex = 0;
     private float nextTimeToFire = 0f;
     private BoxCollider gunTrigger;
+    private AudioSource audioSource;
 
     Weapon CurrentWeapon => weapons[currentWeaponIndex];
 
@@ -84,6 +89,7 @@ public class Gun : MonoBehaviour
         RefreshTrigger();
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
         UpdateWeaponVisibility();
+        audioSource = GetComponent<AudioSource>();
     }
 
     // ──────────────────────────────────────────
@@ -163,9 +169,20 @@ public class Gun : MonoBehaviour
 
     void Fire()
     {
-        // Sound
-        AudioSource audio = GetComponent<AudioSource>();
-        if (audio) { audio.Stop(); audio.Play(); }
+        switch (CurrentWeapon.type)
+        {
+            case WeaponType.Pistol:
+                if (pistolSound) audioSource.PlayOneShot(pistolSound);
+                break;
+
+            case WeaponType.MachinePistol:
+                if (machinePistolSound) audioSource.PlayOneShot(machinePistolSound);
+                break;
+
+            case WeaponType.Shotgun:
+                if (shotgunSound) audioSource.PlayOneShot(shotgunSound);
+                break;
+        }
 
         // Muzzle flash
         switch (CurrentWeapon.type)

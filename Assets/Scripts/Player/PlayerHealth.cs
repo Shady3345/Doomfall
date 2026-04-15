@@ -119,9 +119,10 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log("Armor gained: " + amount + " | Armor: " + armor);
     }
 
+
     void Die()
     {
         Debug.Log("Player died!");
-        // TODO: Add respawn / restart / UI
+        DeathScreen.Instance.ShowDeathScreen(); // ✅ add this
     }
 }
