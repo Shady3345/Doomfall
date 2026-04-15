@@ -34,6 +34,7 @@ public class DeathScreen : MonoBehaviour
     public void QuitToMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu"); // change to your menu scene name
+        Application.Quit();
+        Debug.Log("Quit"); // nur im Editor sichtbar
     }
 }

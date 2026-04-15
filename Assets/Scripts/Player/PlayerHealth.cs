@@ -7,6 +7,7 @@ public class PlayerHealth : MonoBehaviour
     public int maxHealth = 100;
     private int health;
 
+
     [Header("Armor")]
     public int maxArmor = 100;
     private int armor;
@@ -81,7 +82,7 @@ public class PlayerHealth : MonoBehaviour
             Debug.Log("Health gained: " + amount + " | Health: " + health);
         }
 
-        CanvasManager.Instance.UpdateArmor(armor);
+        CanvasManager.Instance.UpdateHealth(health);
 
     }
 
