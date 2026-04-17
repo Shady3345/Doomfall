@@ -59,7 +59,7 @@ public class EnemyAI : MonoBehaviour
         {
             agent.isStopped = true;
             agent.ResetPath();
-            animator.SetBool("isWalking", false);     // ✅ idle
+            animator.SetBool("isWalking", false);     
         }
     }
 
@@ -68,8 +68,7 @@ public class EnemyAI : MonoBehaviour
         if (Time.time < lastAttackTime + attackCooldown) return;
         lastAttackTime = Time.time;
 
-        animator.SetTrigger("Attack"); // ✅ trigger attack animation
-
+       
         PlayerHealth player = playerTransform.GetComponent<PlayerHealth>();
         if (player != null)
         {
