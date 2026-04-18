@@ -21,6 +21,13 @@ public class PlayerController : MonoBehaviour
     private float xRotation = 0f;
     private bool canMove = true;
 
+    [Header("Map Boundaries")]
+    public float minX = -50f;
+    public float maxX = 50f;
+    public float minZ = -50f;
+    public float maxZ = 50f;
+
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
@@ -65,6 +72,21 @@ public class PlayerController : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+        EnforceBoundaries();
+    }
+
+    void EnforceBoundaries()
+    {
+        Vector3 pos = transform.position;
+        pos.x = Mathf.Clamp(pos.x, minX, maxX);
+        pos.z = Mathf.Clamp(pos.z, minZ, maxZ);
+
+        if (transform.position.x != pos.x || transform.position.z != pos.z)
+        {
+            controller.enabled = false;
+            transform.position = pos;
+            controller.enabled = true;
+        }
     }
 
     void MouseLook()

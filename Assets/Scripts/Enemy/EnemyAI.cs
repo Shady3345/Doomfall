@@ -15,13 +15,11 @@ public class EnemyAI : MonoBehaviour
     private EnemyAwareness enemyAwareness;
     private NavMeshAgent agent;
 
-    private Animator animator;
 
     private void Start()
     {
         enemyAwareness = GetComponent<EnemyAwareness>();
         agent = GetComponent<NavMeshAgent>();
-        animator = GetComponent<Animator>(); // or GetComponentInChildren if mesh is a child
         agent.stoppingDistance = 0f;
     }
 
@@ -45,13 +43,10 @@ public class EnemyAI : MonoBehaviour
             {
                 agent.isStopped = false;
                 agent.SetDestination(playerTransform.position);
-                animator.SetBool("isWalking", true);  // ✅ walk animation
-                animator.ResetTrigger("Attack");
             }
             else
             {
                 agent.isStopped = true;
-                animator.SetBool("isWalking", false); // ✅ stop walk
                 Attack();
             }
         }
@@ -59,7 +54,6 @@ public class EnemyAI : MonoBehaviour
         {
             agent.isStopped = true;
             agent.ResetPath();
-            animator.SetBool("isWalking", false);     
         }
     }
 
