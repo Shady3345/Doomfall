@@ -18,6 +18,7 @@ public class Gun : MonoBehaviour
     public GameObject pistolPickupPrefab;
     public GameObject machinePistolPickupPrefab;
     public GameObject shotgunPickupPrefab;
+
     // ──────────────────────────────────────────
     //  REFERENCES
     // ──────────────────────────────────────────
@@ -28,7 +29,7 @@ public class Gun : MonoBehaviour
     public float gunShotRadius = 10f;
 
     // ──────────────────────────────────────────
-    //  WEAPON MODELS (3D held sprites)
+    //  WEAPON MODELS
     // ──────────────────────────────────────────
     [Header("Weapon Models")]
     public GameObject pistolObject;
@@ -36,7 +37,7 @@ public class Gun : MonoBehaviour
     public GameObject shotgunObject;
 
     // ──────────────────────────────────────────
-    //  UI WEAPON ICONS (HUD)
+    //  UI WEAPON ICONS
     // ──────────────────────────────────────────
     [Header("UI Weapon Icons")]
     public GameObject uiPistol;
@@ -72,7 +73,6 @@ public class Gun : MonoBehaviour
     // ──────────────────────────────────────────
     public int currentWeaponIndex = 0;
     private float nextTimeToFire = 0f;
-    private BoxCollider gunTrigger;
     private AudioSource audioSource;
 
     Weapon CurrentWeapon => weapons[currentWeaponIndex];
@@ -82,11 +82,8 @@ public class Gun : MonoBehaviour
     // ──────────────────────────────────────────
     void Start()
     {
-        gunTrigger = GetComponent<BoxCollider>();
-
         foreach (var w in weapons) w.ammo = 0;
 
-        RefreshTrigger();
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
         UpdateWeaponVisibility();
         audioSource = GetComponent<AudioSource>();
@@ -100,6 +97,24 @@ public class Gun : MonoBehaviour
         HandleWeaponSwitch();
         HandleFire();
         HandleMelee();
+        UpdateEnemyList();
+    }
+
+    // ──────────────────────────────────────────
+    //  ENEMY DETECTION
+    // ──────────────────────────────────────────
+    void UpdateEnemyList()
+    {
+        float r = CurrentWeapon.range;
+        Collider[] hits = Physics.OverlapSphere(transform.position, r, enemyLayerMask);
+
+        enemyManager.ClearEnemies();
+
+        foreach (var col in hits)
+        {
+            Enemy e = col.GetComponent<Enemy>();
+            if (e != null) enemyManager.AddEnemy(e);
+        }
     }
 
     // ──────────────────────────────────────────
@@ -127,12 +142,10 @@ public class Gun : MonoBehaviour
 
         if (prefab != null)
         {
-            // Spawn the pickup slightly in front of the player
             Vector3 dropPosition = playerCamera.position + playerCamera.forward * 1.5f;
             Instantiate(prefab, dropPosition, Quaternion.identity);
         }
 
-        // Reset the weapon
         CurrentWeapon.unlocked = false;
         CurrentWeapon.ammo = 0;
     }
@@ -144,7 +157,6 @@ public class Gun : MonoBehaviour
         if (index == currentWeaponIndex) return;
 
         currentWeaponIndex = index;
-        RefreshTrigger();
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
         UpdateWeaponVisibility();
         Debug.Log("Switched to " + CurrentWeapon.type);
@@ -166,25 +178,15 @@ public class Gun : MonoBehaviour
     // ──────────────────────────────────────────
     //  FIRE
     // ──────────────────────────────────────────
-
     void Fire()
     {
         switch (CurrentWeapon.type)
         {
-            case WeaponType.Pistol:
-                if (pistolSound) audioSource.PlayOneShot(pistolSound);
-                break;
-
-            case WeaponType.MachinePistol:
-                if (machinePistolSound) audioSource.PlayOneShot(machinePistolSound);
-                break;
-
-            case WeaponType.Shotgun:
-                if (shotgunSound) audioSource.PlayOneShot(shotgunSound);
-                break;
+            case WeaponType.Pistol: if (pistolSound) audioSource.PlayOneShot(pistolSound); break;
+            case WeaponType.MachinePistol: if (machinePistolSound) audioSource.PlayOneShot(machinePistolSound); break;
+            case WeaponType.Shotgun: if (shotgunSound) audioSource.PlayOneShot(shotgunSound); break;
         }
 
-        // Muzzle flash
         switch (CurrentWeapon.type)
         {
             case WeaponType.Pistol: if (pistolMuzzleFlash) pistolMuzzleFlash.Play(); break;
@@ -204,7 +206,6 @@ public class Gun : MonoBehaviour
             case WeaponType.MachinePistol:
                 SingleRaycast(CurrentWeapon.damage, CurrentWeapon.range);
                 break;
-
             case WeaponType.Shotgun:
                 ShotgunBlast();
                 break;
@@ -278,12 +279,10 @@ public class Gun : MonoBehaviour
         bool machineActive = CurrentWeapon.type == WeaponType.MachinePistol && CurrentWeapon.unlocked;
         bool shotgunActive = CurrentWeapon.type == WeaponType.Shotgun && CurrentWeapon.unlocked;
 
-        // 3D held weapon sprites
         if (pistolObject) pistolObject.SetActive(pistolActive);
         if (machinePistolObject) machinePistolObject.SetActive(machineActive);
         if (shotgunObject) shotgunObject.SetActive(shotgunActive);
 
-        // HUD UI icons
         if (uiPistol) uiPistol.SetActive(pistolActive);
         if (uiShotgun) uiShotgun.SetActive(shotgunActive);
         if (uiMachinePistol) uiMachinePistol.SetActive(machineActive);
@@ -298,7 +297,6 @@ public class Gun : MonoBehaviour
         {
             if (w.type == type && !w.unlocked)
             {
-                // Drop current weapon first
                 DropCurrentWeapon();
 
                 w.unlocked = true;
@@ -306,7 +304,6 @@ public class Gun : MonoBehaviour
                 Debug.Log(type + " unlocked!");
 
                 currentWeaponIndex = weapons.IndexOf(w);
-                RefreshTrigger();
                 CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
                 UpdateWeaponVisibility();
             }
@@ -316,39 +313,24 @@ public class Gun : MonoBehaviour
     // ──────────────────────────────────────────
     //  PUBLIC: GIVE AMMO
     // ──────────────────────────────────────────
-    public void GiveAmmo(int amount, GameObject pickup)
+    public void GiveAmmo(int amount, WeaponType targetType, GameObject pickup)
     {
-        if (CurrentWeapon.ammo >= CurrentWeapon.maxAmmo)
+        Weapon target = weapons.Find(w => w.type == targetType);
+
+        if (target == null) return;
+
+        if (target.ammo >= target.maxAmmo)
         {
             Debug.Log("Ammo already full!");
             return;
         }
 
-        CurrentWeapon.ammo = Mathf.Min(CurrentWeapon.ammo + amount, CurrentWeapon.maxAmmo);
+        target.ammo = Mathf.Min(target.ammo + amount, target.maxAmmo);
         Destroy(pickup);
-        CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
-    }
 
-    // ──────────────────────────────────────────
-    //  TRIGGER ZONE
-    // ──────────────────────────────────────────
-    void RefreshTrigger()
-    {
-        if (gunTrigger == null) return;
-        float r = CurrentWeapon.range;
-        gunTrigger.size = new Vector3(r, r, r);
-        gunTrigger.center = new Vector3(0, r / 2f, r / 2f);
-    }
+        if (target.type == CurrentWeapon.type)
+            CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
 
-    private void OnTriggerEnter(Collider other)
-    {
-        Enemy e = other.GetComponent<Enemy>();
-        if (e) enemyManager.AddEnemy(e);
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        Enemy e = other.GetComponent<Enemy>();
-        if (e) enemyManager.RemoveEnemy(e);
+        Debug.Log($"Gave {amount} ammo to {targetType}");
     }
 }

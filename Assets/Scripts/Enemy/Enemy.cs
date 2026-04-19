@@ -2,20 +2,16 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-
     private Animator spriteAnim;
     private AngleToPlayer angleToPlayer;
     private EnemyManager enemyManager;
     private float enemyHealth = 2f;
-
-    public GameObject gunHitEfect;
-
+    public GameObject gunHitEffect;
 
     private void Start()
     {
         spriteAnim = GetComponentInChildren<Animator>();
         angleToPlayer = GetComponent<AngleToPlayer>();
-
         enemyManager = FindAnyObjectByType<EnemyManager>();
     }
 
@@ -26,13 +22,12 @@ public class Enemy : MonoBehaviour
             enemyManager.RemoveEnemy(this);
             Destroy(gameObject);
         }
-    } 
+    }
 
     public void TakeDamage(float damage)
     {
-        Instantiate(original: gunHitEfect, position: transform.position, rotation: Quaternion.identity);
+        Instantiate(gunHitEffect, transform.position, Quaternion.identity);
         enemyHealth -= damage;
         Debug.Log("Enemy took damage! Remaining health: " + enemyHealth);
     }
-
 }

@@ -23,6 +23,7 @@ public class EnemyAI : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>(); // or GetComponentInChildren if mesh is a child
         agent.stoppingDistance = 0f;
+
     }
 
     private void Update()
