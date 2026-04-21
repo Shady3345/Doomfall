@@ -15,12 +15,16 @@ public class EnemyAI : MonoBehaviour
     private EnemyAwareness enemyAwareness;
     private NavMeshAgent agent;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> saved-work
     private void Start()
     {
         enemyAwareness = GetComponent<EnemyAwareness>();
         agent = GetComponent<NavMeshAgent>();
         agent.stoppingDistance = 0f;
+
     }
 
     private void Update()
@@ -53,7 +57,11 @@ public class EnemyAI : MonoBehaviour
         else
         {
             agent.isStopped = true;
+<<<<<<< HEAD
             agent.ResetPath();
+=======
+            agent.ResetPath();  
+>>>>>>> saved-work
         }
     }
 

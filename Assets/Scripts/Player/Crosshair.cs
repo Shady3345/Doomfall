@@ -11,8 +11,8 @@ public class Crosshair : MonoBehaviour
     public Image centerDot;
 
     [Header("Settings")]
-    public Color inRangeColor = new Color(1f, 0f, 0f, 1f);    // red = in range
-    public Color outRangeColor = new Color(1f, 1f, 1f, 0.5f); // white = out of range
+    public Color inRangeColor = new Color(1f, 0f, 0f, 1f);
+    public Color outRangeColor = new Color(1f, 1f, 1f, 0.5f);
     public float gapInRange = 5f;
     public float gapOutRange = 20f;
     public float animSpeed = 10f;
@@ -30,7 +30,6 @@ public class Crosshair : MonoBehaviour
     {
         if (gun == null) return;
 
-        // Check if any weapon is unlocked
         bool hasWeapon = false;
         foreach (var w in gun.weapons)
             if (w.unlocked) { hasWeapon = true; break; }
@@ -43,31 +42,26 @@ public class Crosshair : MonoBehaviour
 
         SetCrosshairVisible(true);
 
-        // Safety check before accessing current weapon
         if (gun.weapons == null || gun.weapons.Count == 0) return;
         if (gun.currentWeaponIndex < 0 || gun.currentWeaponIndex >= gun.weapons.Count) return;
 
         Gun.Weapon current = gun.weapons[gun.currentWeaponIndex];
         if (current == null) return;
 
-        // Raycast to check if enemy is in range
+        // Check if enemy OR boss is in range
         bool enemyInRange = false;
-
         if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, current.range))
         {
-            if (hit.collider.GetComponent<Enemy>() != null)
+            if (hit.collider.GetComponent<Enemy>() != null || hit.collider.GetComponent<Boss>() != null)
                 enemyInRange = true;
         }
 
-        // Animate gap
         float targetGap = enemyInRange ? gapInRange : gapOutRange;
         currentGap = Mathf.Lerp(currentGap, targetGap, Time.deltaTime * animSpeed);
 
-        // Update color
         Color targetColor = enemyInRange ? inRangeColor : outRangeColor;
         SetColor(targetColor);
 
-        // Update positions
         topLine.rectTransform.anchoredPosition = new Vector2(0, currentGap + topLine.rectTransform.sizeDelta.y / 2);
         bottomLine.rectTransform.anchoredPosition = new Vector2(0, -currentGap - bottomLine.rectTransform.sizeDelta.y / 2);
         leftLine.rectTransform.anchoredPosition = new Vector2(-currentGap - leftLine.rectTransform.sizeDelta.x / 2, 0);

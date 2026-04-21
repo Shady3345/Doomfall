@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2767874666181803075}
   - component: {fileID: 15075984209007125}
   m_Layer: 0
-  m_Name: BigArmor 1
+  m_Name: SmallArmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -70,7 +70,8 @@ MonoBehaviour:
   isHealth: 0
   isAmmo: 0
   isArmor: 1
-  amount: 50
+  amount: 25
+  ammoWeaponType: 0
 --- !u!1 &8562668455696690346
 GameObject:
   m_ObjectHideFlags: 0

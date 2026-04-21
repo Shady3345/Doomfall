@@ -15,39 +15,77 @@ public class PlayerController : MonoBehaviour
     public float mouseSensitivity = 0.1f;
     public Transform playerCamera;
 
+    [Header("Spawn")]
+    public Transform spawnPoint;
+
+    [Header("Health")]
+    public int maxHealth = 3;
+    public float invincibilityDuration = 1f; // seconds of invincibility after being hit
+
     private CharacterController controller;
     private Vector3 velocity;
     private Vector3 currentMoveVelocity;
     private float xRotation = 0f;
     private bool canMove = true;
 
+<<<<<<< HEAD
     [Header("Map Boundaries")]
     public float minX = -50f;
     public float maxX = 50f;
     public float minZ = -50f;
     public float maxZ = 50f;
 
+=======
+    private int currentHealth;
+    private bool isInvincible = false;
+    private float invincibilityTimer = 0f;
+>>>>>>> saved-work
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
         xRotation = 0f;
         playerCamera.localRotation = Quaternion.Euler(0f, 0f, 0f);
+
+        currentHealth = maxHealth;
+
+        if (spawnPoint != null)
+        {
+            controller.enabled = false;
+            transform.position = spawnPoint.position;
+            controller.enabled = true;
+        }
     }
 
     void Update()
     {
+        if (isInvincible)
+        {
+            invincibilityTimer -= Time.deltaTime;
+            if (invincibilityTimer <= 0f)
+                isInvincible = false;
+        }
+
         Move();
         MouseLook();
     }
 
     void Move()
     {
-        if (!canMove) return;
+        if (!canMove || TitleScreen.isShowing) return;
+
+        // Fell off the map — only case where we still respawn
+        if (transform.position.y < -10f)
+        {
+            controller.enabled = false;
+            transform.position = spawnPoint != null ? spawnPoint.position : new Vector3(0f, 2f, 0f);
+            velocity = Vector3.zero;
+            currentMoveVelocity = Vector3.zero;
+            controller.enabled = true;
+            return;
+        }
 
         float x = Keyboard.current.aKey.isPressed ? -1 :
                   Keyboard.current.dKey.isPressed ? 1 : 0;
@@ -91,7 +129,7 @@ public class PlayerController : MonoBehaviour
 
     void MouseLook()
     {
-        if (!canMove) return;
+        if (!canMove || TitleScreen.isShowing) return;
 
         Vector2 mouse = Mouse.current.delta.ReadValue();
         float mouseX = mouse.x * mouseSensitivity * Time.deltaTime * 100f;
@@ -99,9 +137,28 @@ public class PlayerController : MonoBehaviour
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -80f, 80f);
-
         playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
+    }
+
+    // Called by enemies — player stays in place, just loses health
+    public void TakeDamage(int amount)
+    {
+        if (isInvincible) return;
+
+        currentHealth -= amount;
+        Debug.Log($"Player hit! Health: {currentHealth}/{maxHealth}");
+
+        // Brief invincibility so enemies can't spam damage
+        isInvincible = true;
+        invincibilityTimer = invincibilityDuration;
+
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            Debug.Log("Player is dead!");
+            // Add your game over / death logic here
+        }
     }
 
     public void SetCanMove(bool state)
