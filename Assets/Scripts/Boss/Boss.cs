@@ -4,19 +4,19 @@ using UnityEngine.AI;
 public class Boss : MonoBehaviour
 {
     [Header("Info")]
-    public string bossName = "Machine Lord";
+    public string bossName = "Machine Lord"; // name shown in boss UI
 
     [Header("Stats")]
     public int maxHealth = 300;
-    private int health;
+    private int health; // current health
 
     [Header("Attack")]
-    public float attackRange = 3f;
-    public float attackDamage = 20f;
-    public float attackCooldown = 1.5f;
-    private float lastAttackTime;
+    public float attackRange = 3f;       // how close player needs to be
+    public float attackDamage = 20f;     // damage per hit
+    public float attackCooldown = 1.5f;  // time between attacks
 
-    private bool isDead = false;
+    private float lastAttackTime; // last time boss attacked
+    private bool isDead = false;  // prevent double death
 
     private Transform player;
     private NavMeshAgent agent;
@@ -26,81 +26,123 @@ public class Boss : MonoBehaviour
     private void Start()
     {
         health = maxHealth;
+
+        // find player by tag
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+        // get required components
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         enemyAwareness = GetComponent<EnemyAwareness>();
 
+        // stop a bit before reaching player so it doesn't overlap
         if (agent != null)
             agent.stoppingDistance = attackRange * 0.8f;
 
-        // BossUI is shown by ArenaSpawner (or whoever spawns this boss)
+        // boss UI gets enabled by spawner, not here
     }
 
     private void Update()
     {
+        // stop logic if dead or missing stuff
         if (isDead || player == null || agent == null) return;
+
+        // safety check (important for navmesh)
         if (!agent.isOnNavMesh) return;
 
-        // Respect awareness — only chase if aggro
+        // only move if boss is aggro
         if (enemyAwareness != null && !enemyAwareness.isAggro)
         {
             agent.isStopped = true;
-            if (animator != null) animator.SetBool("isWalking", false);
+
+            if (animator != null)
+                animator.SetBool("isWalking", false);
+
             return;
         }
 
         float distance = Vector3.Distance(transform.position, player.position);
 
+        // move towards player
         if (distance > attackRange)
         {
             agent.isStopped = false;
             agent.SetDestination(player.position);
-            if (animator != null) animator.SetBool("isWalking", true);
+
+            if (animator != null)
+                animator.SetBool("isWalking", true);
         }
         else
         {
+            // stop and attack when close enough
             agent.isStopped = true;
-            if (animator != null) animator.SetBool("isWalking", false);
+
+            if (animator != null)
+                animator.SetBool("isWalking", false);
+
             Attack();
         }
     }
 
     void Attack()
     {
+        // check cooldown so boss doesn't spam attacks
         if (Time.time < lastAttackTime + attackCooldown) return;
+
         lastAttackTime = Time.time;
 
-        if (animator != null) animator.SetTrigger("Attack");
+        // trigger attack animation
+        if (animator != null)
+            animator.SetTrigger("Attack");
 
+        // deal damage to player
         PlayerHealth ph = player.GetComponent<PlayerHealth>();
-        if (ph != null) ph.DamagePlayer((int)attackDamage);
+        if (ph != null)
+            ph.DamagePlayer((int)attackDamage);
     }
 
     public void TakeDamage(int damage)
     {
         if (isDead) return;
 
+        // reduce health
         health -= damage;
+
+        // clamp so it doesn't go below 0
         health = Mathf.Clamp(health, 0, maxHealth);
 
-        // Getting shot makes the boss aggro immediately
-        if (enemyAwareness != null) enemyAwareness.isAggro = true;
+        // getting hit forces aggro
+        if (enemyAwareness != null)
+            enemyAwareness.isAggro = true;
 
-        if (BossUI.Instance != null) BossUI.Instance.UpdateHealth(health);
+        // update boss UI
+        if (BossUI.Instance != null)
+            BossUI.Instance.UpdateHealth(health);
 
-        if (health <= 0) Die();
+        // check death
+        if (health <= 0)
+            Die();
     }
 
     void Die()
     {
         if (isDead) return;
+
         isDead = true;
 
-        if (agent != null) agent.isStopped = true;
-        if (animator != null) animator.SetTrigger("Die");
-        if (BossUI.Instance != null) BossUI.Instance.HideBoss();
+        // stop movement
+        if (agent != null)
+            agent.isStopped = true;
 
+        // play death animation
+        if (animator != null)
+            animator.SetTrigger("Die");
+
+        // hide boss UI
+        if (BossUI.Instance != null)
+            BossUI.Instance.HideBoss();
+
+        // destroy after delay (so animation can play)
         Destroy(gameObject, 3f);
     }
 }

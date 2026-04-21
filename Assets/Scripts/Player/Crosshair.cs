@@ -3,18 +3,18 @@ using UnityEngine.UI;
 
 public class Crosshair : MonoBehaviour
 {
-    [Header("Crosshair Parts")]
     public Image topLine;
     public Image bottomLine;
     public Image leftLine;
     public Image rightLine;
     public Image centerDot;
 
-    [Header("Settings")]
-    public Color inRangeColor = new Color(1f, 0f, 0f, 1f);
+    public Color inRangeColor = Color.red;
     public Color outRangeColor = new Color(1f, 1f, 1f, 0.5f);
+
     public float gapInRange = 5f;
     public float gapOutRange = 20f;
+
     public float animSpeed = 10f;
 
     private Gun gun;
@@ -22,7 +22,7 @@ public class Crosshair : MonoBehaviour
 
     void Start()
     {
-        gun = Object.FindFirstObjectByType<Gun>();
+        gun = FindFirstObjectByType<Gun>();
         currentGap = gapOutRange;
     }
 
@@ -30,59 +30,40 @@ public class Crosshair : MonoBehaviour
     {
         if (gun == null) return;
 
-        bool hasWeapon = false;
-        foreach (var w in gun.weapons)
-            if (w.unlocked) { hasWeapon = true; break; }
-
-        if (!hasWeapon)
-        {
-            SetCrosshairVisible(false);
-            return;
-        }
-
-        SetCrosshairVisible(true);
-
-        if (gun.weapons == null || gun.weapons.Count == 0) return;
-        if (gun.currentWeaponIndex < 0 || gun.currentWeaponIndex >= gun.weapons.Count) return;
-
-        Gun.Weapon current = gun.weapons[gun.currentWeaponIndex];
-        if (current == null) return;
-
-        // Check if enemy OR boss is in range
+        // check if something shootable is in range
         bool enemyInRange = false;
-        if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit hit, current.range))
+
+        if (Physics.Raycast(Camera.main.transform.position,
+            Camera.main.transform.forward,
+            out RaycastHit hit,
+            gun.weapons[gun.currentWeaponIndex].range))
         {
-            if (hit.collider.GetComponent<Enemy>() != null || hit.collider.GetComponent<Boss>() != null)
+            if (hit.collider.GetComponent<Enemy>() ||
+                hit.collider.GetComponent<Boss>())
                 enemyInRange = true;
         }
 
         float targetGap = enemyInRange ? gapInRange : gapOutRange;
+
+        // smooth animation
         currentGap = Mathf.Lerp(currentGap, targetGap, Time.deltaTime * animSpeed);
 
-        Color targetColor = enemyInRange ? inRangeColor : outRangeColor;
-        SetColor(targetColor);
+        Color color = enemyInRange ? inRangeColor : outRangeColor;
+        SetColor(color);
 
-        topLine.rectTransform.anchoredPosition = new Vector2(0, currentGap + topLine.rectTransform.sizeDelta.y / 2);
-        bottomLine.rectTransform.anchoredPosition = new Vector2(0, -currentGap - bottomLine.rectTransform.sizeDelta.y / 2);
-        leftLine.rectTransform.anchoredPosition = new Vector2(-currentGap - leftLine.rectTransform.sizeDelta.x / 2, 0);
-        rightLine.rectTransform.anchoredPosition = new Vector2(currentGap + rightLine.rectTransform.sizeDelta.x / 2, 0);
+        // move lines
+        topLine.rectTransform.anchoredPosition = new Vector2(0, currentGap);
+        bottomLine.rectTransform.anchoredPosition = new Vector2(0, -currentGap);
+        leftLine.rectTransform.anchoredPosition = new Vector2(-currentGap, 0);
+        rightLine.rectTransform.anchoredPosition = new Vector2(currentGap, 0);
     }
 
-    void SetColor(Color color)
+    void SetColor(Color c)
     {
-        topLine.color = color;
-        bottomLine.color = color;
-        leftLine.color = color;
-        rightLine.color = color;
-        if (centerDot) centerDot.color = color;
-    }
-
-    void SetCrosshairVisible(bool visible)
-    {
-        topLine.gameObject.SetActive(visible);
-        bottomLine.gameObject.SetActive(visible);
-        leftLine.gameObject.SetActive(visible);
-        rightLine.gameObject.SetActive(visible);
-        if (centerDot) centerDot.gameObject.SetActive(visible);
+        topLine.color = c;
+        bottomLine.color = c;
+        leftLine.color = c;
+        rightLine.color = c;
+        if (centerDot) centerDot.color = c;
     }
 }

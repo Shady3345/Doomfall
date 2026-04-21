@@ -5,23 +5,19 @@ using TMPro;
 
 public class CanvasManager : MonoBehaviour
 {
-    [Header("UI Text")]
     public TextMeshProUGUI health;
     public TextMeshProUGUI armor;
     public TextMeshProUGUI ammo;
 
-    [Header("Weapon Sprite")]
     public Image weaponImage;
     public Sprite pistolSprite;
     public Sprite machinePistolSprite;
     public Sprite shotgunSprite;
 
-    [Header("Keys")]
     public GameObject redKey;
     public GameObject greenKey;
     public GameObject blueKey;
 
-    [Header("Death Screen")]
     public GameObject deathScreen;
 
     private static CanvasManager _instance;
@@ -29,9 +25,10 @@ public class CanvasManager : MonoBehaviour
 
     private void Awake()
     {
+        // simple singleton
         if (_instance != null && _instance != this)
         {
-            // A new scene loaded with fresh UI references — hand them to the surviving instance
+            // copy references from new canvas
             _instance.AbsorbReferences(this);
             Destroy(gameObject);
         }
@@ -42,47 +39,48 @@ public class CanvasManager : MonoBehaviour
         }
     }
 
-    // Copies all UI references from a newly loaded CanvasManager into this one
-    private void AbsorbReferences(CanvasManager other)
+    void AbsorbReferences(CanvasManager other)
     {
+        // update UI references when scene reloads
         health = other.health;
         armor = other.armor;
         ammo = other.ammo;
+
         weaponImage = other.weaponImage;
+
         pistolSprite = other.pistolSprite;
         machinePistolSprite = other.machinePistolSprite;
         shotgunSprite = other.shotgunSprite;
+
         redKey = other.redKey;
         greenKey = other.greenKey;
         blueKey = other.blueKey;
+
         deathScreen = other.deathScreen;
     }
 
-    // --- HEALTH ---
-    public void UpdateHealth(int healthValue)
+    public void UpdateHealth(int value)
     {
         if (health != null)
-            health.text = healthValue.ToString();
+            health.text = value.ToString();
     }
 
-    // --- ARMOR ---
-    public void UpdateArmor(int armorValue)
+    public void UpdateArmor(int value)
     {
         if (armor != null)
-            armor.text = armorValue.ToString();
+            armor.text = value.ToString();
     }
 
-    // --- AMMO ---
-    public void UpdateAmmo(int ammoValue)
+    public void UpdateAmmo(int value)
     {
         if (ammo != null)
-            ammo.text = ammoValue.ToString();
+            ammo.text = value.ToString();
     }
 
-    // --- WEAPON SPRITE ---
     public void UpdateWeaponSprite(Gun.WeaponType type)
     {
         if (weaponImage == null) return;
+
         weaponImage.sprite = type switch
         {
             Gun.WeaponType.Pistol => pistolSprite,
@@ -92,7 +90,6 @@ public class CanvasManager : MonoBehaviour
         };
     }
 
-    // --- KEYS ---
     public void UpdateKeys(string keyColor)
     {
         if (keyColor == "red" && redKey != null) redKey.SetActive(true);
@@ -102,16 +99,16 @@ public class CanvasManager : MonoBehaviour
 
     public void ClearKeys()
     {
-        if (redKey != null) redKey.SetActive(false);
-        if (blueKey != null) blueKey.SetActive(false);
-        if (greenKey != null) greenKey.SetActive(false);
+        if (redKey) redKey.SetActive(false);
+        if (blueKey) blueKey.SetActive(false);
+        if (greenKey) greenKey.SetActive(false);
     }
 
-    // --- DEATH SCREEN ---
     public void ShowDeathScreen()
     {
         if (deathScreen != null)
             deathScreen.SetActive(true);
+
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -127,6 +124,5 @@ public class CanvasManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         Application.Quit();
-        Debug.Log("Game Quit");
     }
 }

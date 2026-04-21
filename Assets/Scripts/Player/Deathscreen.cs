@@ -4,10 +4,12 @@ using UnityEngine.SceneManagement;
 public class DeathScreen : MonoBehaviour
 {
     public static DeathScreen Instance;
+
     [SerializeField] private GameObject deathCanvas;
 
     private void Awake()
     {
+        // singleton
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -19,15 +21,17 @@ public class DeathScreen : MonoBehaviour
 
     public void ShowDeathScreen()
     {
-        deathCanvas.SetActive(true); // this is now your DeathPanel, not the whole Canvas
+        deathCanvas.SetActive(true);
+
         Time.timeScale = 0f;
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
     public void Restart()
     {
-        Time.timeScale = 1f; // unfreeze before reload
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
@@ -35,6 +39,5 @@ public class DeathScreen : MonoBehaviour
     {
         Time.timeScale = 1f;
         Application.Quit();
-        Debug.Log("Quit"); // nur im Editor sichtbar
     }
 }

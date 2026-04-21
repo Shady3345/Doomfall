@@ -9,6 +9,7 @@ public class WeaponPickup : MonoBehaviour
         if (!other.CompareTag("Player")) return;
 
         Gun gun = other.GetComponentInChildren<Gun>();
+
         if (gun != null)
         {
             gun.UnlockWeapon(weaponType);

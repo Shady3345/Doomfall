@@ -4,29 +4,37 @@ using TMPro;
 
 public class BossUI : MonoBehaviour
 {
-    public static BossUI Instance;
+    public static BossUI Instance; // simple global access
 
-    public GameObject root;
-    public Slider healthBar;        // instant HP
-    public Slider delayedBar;       // smooth/delay HP
+    public GameObject root; // whole UI container
+
+    public Slider healthBar;    // instant HP bar
+    public Slider delayedBar;   // smooth HP bar
+
     public TMP_Text bossNameText;
 
-    public float smoothSpeed = 5f;
+    public float smoothSpeed = 5f; // speed of delayed bar
 
-    private float targetHealth;
+    private float targetHealth; // where delayed bar moves to
 
     private void Awake()
     {
         Instance = this;
+
+        // hide UI at start
         root.SetActive(false);
     }
 
     private void Update()
     {
-        // smoothly move delayed bar toward real HP
+        // smooth follow effect
         if (delayedBar.value > targetHealth)
         {
-            delayedBar.value = Mathf.Lerp(delayedBar.value, targetHealth, Time.deltaTime * smoothSpeed);
+            delayedBar.value = Mathf.Lerp(
+                delayedBar.value,
+                targetHealth,
+                Time.deltaTime * smoothSpeed
+            );
         }
         else
         {
@@ -40,6 +48,7 @@ public class BossUI : MonoBehaviour
 
         bossNameText.text = name;
 
+        // setup bars
         healthBar.maxValue = maxHealth;
         delayedBar.maxValue = maxHealth;
 
@@ -51,10 +60,10 @@ public class BossUI : MonoBehaviour
 
     public void UpdateHealth(int currentHealth)
     {
-        // instant drop
+        // instant bar updates directly
         healthBar.value = currentHealth;
 
-        // delayed bar will follow
+        // delayed bar moves smoothly
         targetHealth = currentHealth;
     }
 

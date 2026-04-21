@@ -4,6 +4,7 @@ public class EnemyAwareness : MonoBehaviour
 {
     public float awarenessRadius = 5f;
     public float chaseRadius = 10f;
+
     public bool isAggro;
 
     private Transform playerTransform;
@@ -16,14 +17,17 @@ public class EnemyAwareness : MonoBehaviour
 
     void Start()
     {
+        // lower default volume
         audioSource.volume = 0.3f;
     }
 
     private void FixedUpdate()
     {
+        // find player if needed
         if (playerTransform == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
+
             if (player != null)
                 playerTransform = player.transform;
             else
@@ -31,24 +35,28 @@ public class EnemyAwareness : MonoBehaviour
         }
 
         float distance = Vector3.Distance(transform.position, playerTransform.position);
+
+        // adjust volume based on distance
         audioSource.volume = Mathf.Clamp01(1f / distance);
 
+        // enter aggro
         if (!isAggro && distance < awarenessRadius)
         {
             isAggro = true;
 
-            // 🔊 Play sound when player enters range
+            // play sound once
             if (!hasPlayedSound)
             {
                 audioSource.PlayOneShot(aggroSound);
                 hasPlayedSound = true;
             }
         }
+        // leave aggro
         else if (isAggro && distance > chaseRadius)
         {
             isAggro = false;
 
-            // 🔁 Reset so it can play again next time
+            // reset sound trigger
             hasPlayedSound = false;
         }
     }
