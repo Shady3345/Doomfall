@@ -19,34 +19,22 @@ public class Gun : MonoBehaviour
     public GameObject machinePistolPickupPrefab;
     public GameObject shotgunPickupPrefab;
 
-    // ──────────────────────────────────────────
-    //  REFERENCES
-    // ──────────────────────────────────────────
     public Transform playerCamera;
     public LayerMask raycastLayerMask;
     public LayerMask enemyLayerMask;
     public EnemyManager enemyManager;
     public float gunShotRadius = 10f;
 
-    // ──────────────────────────────────────────
-    //  WEAPON MODELS
-    // ──────────────────────────────────────────
     [Header("Weapon Models")]
     public GameObject pistolObject;
     public GameObject machinePistolObject;
     public GameObject shotgunObject;
 
-    // ──────────────────────────────────────────
-    //  UI WEAPON ICONS
-    // ──────────────────────────────────────────
     [Header("UI Weapon Icons")]
     public GameObject uiPistol;
     public GameObject uiShotgun;
     public GameObject uiMachinePistol;
 
-    // ──────────────────────────────────────────
-    //  WEAPON DEFINITION
-    // ──────────────────────────────────────────
     public enum WeaponType { Pistol, MachinePistol, Shotgun }
 
     [System.Serializable]
@@ -68,30 +56,20 @@ public class Gun : MonoBehaviour
         new Weapon { type = WeaponType.Shotgun,       damage = 15f, range = 15f, fireRate = 1f,  maxAmmo = 8,  ammo = 0, unlocked = false },
     };
 
-    // ──────────────────────────────────────────
-    //  STATE
-    // ──────────────────────────────────────────
     public int currentWeaponIndex = 0;
     private float nextTimeToFire = 0f;
     private AudioSource audioSource;
 
     Weapon CurrentWeapon => weapons[currentWeaponIndex];
 
-    // ──────────────────────────────────────────
-    //  INIT
-    // ──────────────────────────────────────────
     void Start()
     {
         foreach (var w in weapons) w.ammo = 0;
-
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
         UpdateWeaponVisibility();
         audioSource = GetComponent<AudioSource>();
     }
 
-    // ──────────────────────────────────────────
-    //  UPDATE
-    // ──────────────────────────────────────────
     void Update()
     {
         HandleWeaponSwitch();
@@ -100,16 +78,11 @@ public class Gun : MonoBehaviour
         UpdateEnemyList();
     }
 
-    // ──────────────────────────────────────────
-    //  ENEMY DETECTION
-    // ──────────────────────────────────────────
     void UpdateEnemyList()
     {
         float r = CurrentWeapon.range;
         Collider[] hits = Physics.OverlapSphere(transform.position, r, enemyLayerMask);
-
         enemyManager.ClearEnemies();
-
         foreach (var col in hits)
         {
             Enemy e = col.GetComponent<Enemy>();
@@ -117,9 +90,6 @@ public class Gun : MonoBehaviour
         }
     }
 
-    // ──────────────────────────────────────────
-    //  WEAPON SWITCHING
-    // ──────────────────────────────────────────
     void HandleWeaponSwitch()
     {
         if (Keyboard.current.digit1Key.wasPressedThisFrame) TrySwitchTo(0);
@@ -130,22 +100,18 @@ public class Gun : MonoBehaviour
     void DropCurrentWeapon()
     {
         if (!CurrentWeapon.unlocked) return;
-
         GameObject prefab = null;
-
         switch (CurrentWeapon.type)
         {
             case WeaponType.Pistol: prefab = pistolPickupPrefab; break;
             case WeaponType.MachinePistol: prefab = machinePistolPickupPrefab; break;
             case WeaponType.Shotgun: prefab = shotgunPickupPrefab; break;
         }
-
         if (prefab != null)
         {
             Vector3 dropPosition = playerCamera.position + playerCamera.forward * 1.5f;
             Instantiate(prefab, dropPosition, Quaternion.identity);
         }
-
         CurrentWeapon.unlocked = false;
         CurrentWeapon.ammo = 0;
     }
@@ -155,16 +121,12 @@ public class Gun : MonoBehaviour
         if (index >= weapons.Count) return;
         if (!weapons[index].unlocked) { Debug.Log(weapons[index].type + " not unlocked yet!"); return; }
         if (index == currentWeaponIndex) return;
-
         currentWeaponIndex = index;
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
         UpdateWeaponVisibility();
         Debug.Log("Switched to " + CurrentWeapon.type);
     }
 
-    // ──────────────────────────────────────────
-    //  FIRE INPUT
-    // ──────────────────────────────────────────
     void HandleFire()
     {
         bool triggerPressed = CurrentWeapon.type == WeaponType.MachinePistol
@@ -175,9 +137,6 @@ public class Gun : MonoBehaviour
             Fire();
     }
 
-    // ──────────────────────────────────────────
-    //  FIRE
-    // ──────────────────────────────────────────
     void Fire()
     {
         switch (CurrentWeapon.type)
@@ -216,13 +175,11 @@ public class Gun : MonoBehaviour
         CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
     }
 
-    // ──────────────────────────────────────────
-    //  RAYCAST HELPERS
-    // ──────────────────────────────────────────
     void SingleRaycast(float baseDamage, float range)
     {
         if (Physics.Raycast(playerCamera.position, playerCamera.forward, out RaycastHit hit, range, raycastLayerMask))
         {
+            // Check for regular enemy
             Enemy enemy = hit.collider.GetComponent<Enemy>();
             if (enemy != null)
             {
@@ -230,6 +187,17 @@ public class Gun : MonoBehaviour
                 float finalDamage = Mathf.Clamp(baseDamage * falloff, baseDamage * 0.25f, baseDamage);
                 enemy.TakeDamage(finalDamage);
                 Debug.Log($"[{CurrentWeapon.type}] Hit enemy for {finalDamage:F1} dmg");
+                return;
+            }
+
+            // Check for boss
+            Boss boss = hit.collider.GetComponent<Boss>();
+            if (boss != null)
+            {
+                float falloff = 1f - (hit.distance / range);
+                float finalDamage = Mathf.Clamp(baseDamage * falloff, baseDamage * 0.25f, baseDamage);
+                boss.TakeDamage((int)finalDamage);
+                Debug.Log($"[{CurrentWeapon.type}] Hit BOSS for {finalDamage:F1} dmg");
             }
         }
     }
@@ -247,14 +215,18 @@ public class Gun : MonoBehaviour
             {
                 Enemy enemy = hit.collider.GetComponent<Enemy>();
                 if (enemy != null)
+                {
                     enemy.TakeDamage(CurrentWeapon.damage);
+                    continue;
+                }
+
+                Boss boss = hit.collider.GetComponent<Boss>();
+                if (boss != null)
+                    boss.TakeDamage((int)CurrentWeapon.damage);
             }
         }
     }
 
-    // ──────────────────────────────────────────
-    //  MELEE (V key)
-    // ──────────────────────────────────────────
     void HandleMelee()
     {
         if (!Keyboard.current.vKey.wasPressedThisFrame) return;
@@ -265,14 +237,19 @@ public class Gun : MonoBehaviour
             if (enemy != null)
             {
                 enemy.TakeDamage(40f);
-                Debug.Log("Knife hit for 40 dmg");
+                Debug.Log("Knife hit enemy for 40 dmg");
+                return;
+            }
+
+            Boss boss = hit.collider.GetComponent<Boss>();
+            if (boss != null)
+            {
+                boss.TakeDamage(40);
+                Debug.Log("Knife hit BOSS for 40 dmg");
             }
         }
     }
 
-    // ──────────────────────────────────────────
-    //  WEAPON VISIBILITY
-    // ──────────────────────────────────────────
     void UpdateWeaponVisibility()
     {
         bool pistolActive = CurrentWeapon.type == WeaponType.Pistol && CurrentWeapon.unlocked;
@@ -288,9 +265,6 @@ public class Gun : MonoBehaviour
         if (uiMachinePistol) uiMachinePistol.SetActive(machineActive);
     }
 
-    // ──────────────────────────────────────────
-    //  PUBLIC: UNLOCK WEAPON
-    // ──────────────────────────────────────────
     public void UnlockWeapon(WeaponType type)
     {
         foreach (var w in weapons)
@@ -298,11 +272,9 @@ public class Gun : MonoBehaviour
             if (w.type == type && !w.unlocked)
             {
                 DropCurrentWeapon();
-
                 w.unlocked = true;
                 w.ammo = w.maxAmmo;
                 Debug.Log(type + " unlocked!");
-
                 currentWeaponIndex = weapons.IndexOf(w);
                 CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
                 UpdateWeaponVisibility();
@@ -310,27 +282,15 @@ public class Gun : MonoBehaviour
         }
     }
 
-    // ──────────────────────────────────────────
-    //  PUBLIC: GIVE AMMO
-    // ──────────────────────────────────────────
     public void GiveAmmo(int amount, WeaponType targetType, GameObject pickup)
     {
         Weapon target = weapons.Find(w => w.type == targetType);
-
         if (target == null) return;
-
-        if (target.ammo >= target.maxAmmo)
-        {
-            Debug.Log("Ammo already full!");
-            return;
-        }
-
+        if (target.ammo >= target.maxAmmo) { Debug.Log("Ammo already full!"); return; }
         target.ammo = Mathf.Min(target.ammo + amount, target.maxAmmo);
         Destroy(pickup);
-
         if (target.type == CurrentWeapon.type)
             CanvasManager.Instance.UpdateAmmo(CurrentWeapon.ammo);
-
         Debug.Log($"Gave {amount} ammo to {targetType}");
     }
 }

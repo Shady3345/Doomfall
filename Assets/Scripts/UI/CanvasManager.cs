@@ -30,12 +30,32 @@ public class CanvasManager : MonoBehaviour
     private void Awake()
     {
         if (_instance != null && _instance != this)
-            Destroy(this.gameObject);
+        {
+            // A new scene loaded with fresh UI references — hand them to the surviving instance
+            _instance.AbsorbReferences(this);
+            Destroy(gameObject);
+        }
         else
         {
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }
+    }
+
+    // Copies all UI references from a newly loaded CanvasManager into this one
+    private void AbsorbReferences(CanvasManager other)
+    {
+        health = other.health;
+        armor = other.armor;
+        ammo = other.ammo;
+        weaponImage = other.weaponImage;
+        pistolSprite = other.pistolSprite;
+        machinePistolSprite = other.machinePistolSprite;
+        shotgunSprite = other.shotgunSprite;
+        redKey = other.redKey;
+        greenKey = other.greenKey;
+        blueKey = other.blueKey;
+        deathScreen = other.deathScreen;
     }
 
     // --- HEALTH ---
@@ -75,16 +95,16 @@ public class CanvasManager : MonoBehaviour
     // --- KEYS ---
     public void UpdateKeys(string keyColor)
     {
-        if (keyColor == "red") redKey.SetActive(true);
-        if (keyColor == "blue") blueKey.SetActive(true);
-        if (keyColor == "green") greenKey.SetActive(true);
+        if (keyColor == "red" && redKey != null) redKey.SetActive(true);
+        if (keyColor == "blue" && blueKey != null) blueKey.SetActive(true);
+        if (keyColor == "green" && greenKey != null) greenKey.SetActive(true);
     }
 
     public void ClearKeys()
     {
-        redKey.SetActive(false);
-        blueKey.SetActive(false);
-        greenKey.SetActive(false);
+        if (redKey != null) redKey.SetActive(false);
+        if (blueKey != null) blueKey.SetActive(false);
+        if (greenKey != null) greenKey.SetActive(false);
     }
 
     // --- DEATH SCREEN ---
