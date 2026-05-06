@@ -2961,10 +2961,6 @@ MonoBehaviour:
   gravity: -20
   mouseSensitivity: 1
   playerCamera: {fileID: 1573294334}
-  minX: -200
-  maxX: 90
-  minZ: -200
-  maxZ: 200
 --- !u!114 &264276862
 MonoBehaviour:
   m_ObjectHideFlags: 0

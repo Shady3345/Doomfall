@@ -16,11 +16,11 @@ public class PlayerController : MonoBehaviour
     public float mouseSensitivity = 0.1f;
     public Transform playerCamera;
 
-    [Header("Map Boundaries")]
-    public float minX = -200f;
-    public float maxX = 90f;
-    public float minZ = -200f;
-    public float maxZ = 200f;
+    //[Header("Map Boundaries")]
+    //public float minX = -200f;
+    //public float maxX = 90f;
+    //public float minZ = -200f;
+   // public float maxZ = 200f;
 
     private CharacterController controller;
 
